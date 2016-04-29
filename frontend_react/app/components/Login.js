@@ -15,42 +15,57 @@ class Login extends Component {
     };
   }
 
-  handleLogin() {
-    console.log("login submitted");
+  handleLogin(e) {
+    e.preventDefault()
     var afterLoginHandler = function(success) {
       if (!success) {
         return this.setState({error: true});
       } else {
         this.setState({successMsg: 'Successfully logged in'});
+
+        const location = this.props.location;
+        if (location.state && location.state.nextPathname) {
+          this.props.history.push(location.state.nextPathname);
+        } else {
+          this.props.history.push('/');
+        }
       }
     }.bind(this);
-
 
     auth.login(this.state.email, this.state.password, afterLoginHandler)
   }
 
-  render() {
-    return (
-      <div style={loginStyle}>
-        <form>
-          <label>Email: </label>
-          <input
-            type='text'
-            value={this.state.email}
-            onChange={e => this.setState({email: e.target.value})}
-            />
-          <br></br>
-          <label>Password: </label>
-          <input
-            type='text'
-            value={this.state.password}
-            onChange={e => this.setState({password: e.target.value})}
-            />
-          <button onClick={() => this.handleLogin() }>Submit</button>
-        </form>
-      </div>
+  handleLogout() {
+    var afterLogoutHandler = function(success) {
+      if (success) {
+        this.setState({successMsg: "You have successfully logged out"});
+      }
+    }.bind(this);
+    autho.logout(afterLogoutHandler);
+  }
 
-    )
+  render() {
+    const isLoggedIn = auth.loggedIn();
+
+    if (isLoggedIn) {
+      return (
+        <div>
+          <p>You are logged in</p>
+          <button onClick={ () => this.handleLogout() }>Logout</button>
+          <p>{this.state.successMsg}</p>
+        </div>
+      )
+    }
+
+    return (
+      <div>
+        <input placeholder='email' type='email' name='email' onChange={ e => this.setState({email: e.target.value}) } />
+        <input placeholder='password' type='password' name='password' onChange={ e => this.setState({password: e.target.value}) } />
+        <button onClick={ () => this.handleLogin() }>Submit</button>
+        <p>{"Don't have an account?"}<Link to={'/signup'}>Sign Up</Link></p>
+        <p>{this.state.successMsg}</p>
+      </div>
+    );
   }
 }
 
